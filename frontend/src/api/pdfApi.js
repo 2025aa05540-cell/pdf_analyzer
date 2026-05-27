@@ -22,14 +22,13 @@ export async function uploadPdf(file) {
   return parseResponse(response);
 }
 
-export async function uploadText(title, text) {
+export async function uploadText(text) {
   const response = await fetch(`${API_BASE_URL}/text`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
     },
     body: JSON.stringify({
-      title,
       text,
     }),
   });

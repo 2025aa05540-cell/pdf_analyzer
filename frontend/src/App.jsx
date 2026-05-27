@@ -11,7 +11,6 @@ function App() {
   const toastTimeoutRef = useRef(null);
   const [inputMode, setInputMode] = useState("pdf");
   const [file, setFile] = useState(null);
-  const [textTitle, setTextTitle] = useState("");
   const [pastedText, setPastedText] = useState("");
   const [documentId, setDocumentId] = useState("");
   const [question, setQuestion] = useState("");
@@ -65,7 +64,7 @@ function App() {
       const result =
         inputMode === "pdf"
           ? await uploadPdf(file)
-          : await uploadText(textTitle.trim() || "Pasted text", pastedText.trim());
+          : await uploadText(pastedText.trim());
       setDocumentId(result.document_id);
       setMessages([]);
       setStatus(
@@ -130,6 +129,27 @@ function App() {
     }
   }
 
+  function handleQuestionKeyDown(event) {
+    if (event.key === "Enter" && !event.shiftKey) {
+      event.preventDefault();
+      event.currentTarget.form?.requestSubmit();
+    }
+  }
+
+  function resetDocument() {
+    setFile(null);
+    setPastedText("");
+    setDocumentId("");
+    setQuestion("");
+    setMessages([]);
+    setStatus("Choose a PDF or paste text to begin.");
+    showToast("success", "Ready for a new document.");
+
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
+    }
+  }
+
   return (
     <main className="app-shell">
       {toast && (
@@ -151,93 +171,100 @@ function App() {
           <section className="panel upload-panel">
             <div className="panel-heading">
               <h2>Document</h2>
-              <div className="mode-switch" aria-label="Document input type">
-                <button
-                  type="button"
-                  className={inputMode === "pdf" ? "active" : ""}
-                  onClick={() => setInputMode("pdf")}
-                >
-                  PDF
-                </button>
-                <button
-                  type="button"
-                  className={inputMode === "text" ? "active" : ""}
-                  onClick={() => setInputMode("text")}
-                >
-                  Text
-                </button>
-              </div>
-            </div>
-
-            <form onSubmit={handleDocumentSubmit} className="stack">
-              {inputMode === "pdf" ? (
-                <div className="pdf-picker">
+              {!documentId && (
+                <div className="mode-switch" aria-label="Document input type">
                   <button
                     type="button"
-                    className="browse-button"
-                    onClick={() => fileInputRef.current?.click()}
+                    className={inputMode === "pdf" ? "active" : ""}
+                    onClick={() => setInputMode("pdf")}
                   >
-                    Select PDF from folder
+                    PDF
                   </button>
-                  <span className="selected-file">
-                    {file ? file.name : "No PDF selected"}
-                  </span>
-                  <span className="limit-note">
-                    Maximum PDF size: {MAX_PDF_SIZE_MB} MB
-                  </span>
-                  <input
-                    ref={fileInputRef}
-                    className="file-input"
-                    type="file"
-                    accept="application/pdf"
-                    onChange={(event) => {
-                      const selectedFile = event.target.files[0] || null;
-                      setFile(selectedFile);
-
-                      if (selectedFile && selectedFile.size > MAX_PDF_SIZE_BYTES) {
-                        setStatus(`PDF is too large. Keep it under ${MAX_PDF_SIZE_MB} MB.`);
-                        showToast("error", `PDF must be under ${MAX_PDF_SIZE_MB} MB.`);
-                        return;
-                      }
-
-                      if (selectedFile) {
-                        setStatus(`${selectedFile.name} selected.`);
-                        showToast("success", "PDF selected.");
-                      }
-                    }}
-                  />
-                </div>
-              ) : (
-                <div className="text-document">
-                  <input
-                    type="text"
-                    value={textTitle}
-                    onChange={(event) => setTextTitle(event.target.value)}
-                    placeholder="Title, optional"
-                  />
-                  <textarea
-                    value={pastedText}
-                    onChange={(event) => {
-                      setPastedText(event.target.value);
-
-                      if (event.target.value.length > MAX_TEXT_CHARACTERS) {
-                        setStatus(`Text is too long. Keep it under ${MAX_TEXT_CHARACTERS.toLocaleString()} characters.`);
-                        showToast("error", "Text is longer than the allowed limit.");
-                      }
-                    }}
-                    placeholder="Paste text here..."
-                    rows="8"
-                  />
-                  <span className="limit-note">
-                    {pastedText.length.toLocaleString()} / {MAX_TEXT_CHARACTERS.toLocaleString()} characters
-                  </span>
+                  <button
+                    type="button"
+                    className={inputMode === "text" ? "active" : ""}
+                    onClick={() => setInputMode("text")}
+                  >
+                    Text
+                  </button>
                 </div>
               )}
+            </div>
 
-              <button type="submit" disabled={isUploading}>
-                {isUploading ? "Saving..." : "Use this document"}
-              </button>
-            </form>
+            {documentId ? (
+              <div className="document-ready">
+                <p>
+                  {file?.name || "Pasted text"} is ready. You can ask questions now.
+                </p>
+                <button type="button" onClick={resetDocument}>
+                  Start new document
+                </button>
+              </div>
+            ) : (
+              <form onSubmit={handleDocumentSubmit} className="stack">
+                {inputMode === "pdf" ? (
+                  <div className="pdf-picker">
+                    <button
+                      type="button"
+                      className="browse-button"
+                      onClick={() => fileInputRef.current?.click()}
+                    >
+                      Select PDF from folder
+                    </button>
+                    <span className="selected-file">
+                      {file ? file.name : "No PDF selected"}
+                    </span>
+                    <span className="limit-note">
+                      Maximum PDF size: {MAX_PDF_SIZE_MB} MB
+                    </span>
+                    <input
+                      ref={fileInputRef}
+                      className="file-input"
+                      type="file"
+                      accept="application/pdf"
+                      onChange={(event) => {
+                        const selectedFile = event.target.files[0] || null;
+                        setFile(selectedFile);
+
+                        if (selectedFile && selectedFile.size > MAX_PDF_SIZE_BYTES) {
+                          setStatus(`PDF is too large. Keep it under ${MAX_PDF_SIZE_MB} MB.`);
+                          showToast("error", `PDF must be under ${MAX_PDF_SIZE_MB} MB.`);
+                          return;
+                        }
+
+                        if (selectedFile) {
+                          setStatus(`${selectedFile.name} selected.`);
+                          showToast("success", "PDF selected.");
+                        }
+                      }}
+                    />
+                  </div>
+                ) : (
+                  <div className="text-document">
+                    <textarea
+                      value={pastedText}
+                      onChange={(event) => {
+                        setPastedText(event.target.value);
+
+                        if (event.target.value.length > MAX_TEXT_CHARACTERS) {
+                          setStatus(`Text is too long. Keep it under ${MAX_TEXT_CHARACTERS.toLocaleString()} characters.`);
+                          showToast("error", "Text is longer than the allowed limit.");
+                        }
+                      }}
+                      placeholder="Paste text here..."
+                      rows="8"
+                    />
+                    <span className="limit-note">
+                      {pastedText.length.toLocaleString()} / {MAX_TEXT_CHARACTERS.toLocaleString()} characters
+                    </span>
+                  </div>
+                )}
+
+                <button type="submit" disabled={isUploading}>
+                  {isUploading ? "Saving..." : "Use this document"}
+                </button>
+              </form>
+            )}
           </section>
         </section>
 
@@ -269,6 +296,7 @@ function App() {
             <textarea
               value={question}
               onChange={(event) => setQuestion(event.target.value)}
+              onKeyDown={handleQuestionKeyDown}
               placeholder="Ask a question about the uploaded PDF..."
               rows="3"
             />

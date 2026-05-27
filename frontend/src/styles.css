@@ -213,6 +213,32 @@ h2 {
   display: none;
 }
 
+.document-ready {
+  display: grid;
+  gap: 14px;
+  border: 1px solid #a9dec9;
+  border-radius: 8px;
+  padding: 18px;
+  color: #14543e;
+  background: #e8f7f0;
+}
+
+.document-ready p {
+  margin: 0;
+  line-height: 1.5;
+}
+
+.document-ready button {
+  min-height: 44px;
+  border: 0;
+  border-radius: 8px;
+  padding: 0 18px;
+  color: #ffffff;
+  background: #2d6cdf;
+  cursor: pointer;
+  font-weight: 800;
+}
+
 .text-document input {
   min-height: 44px;
   border: 1px solid #cfd8e3;

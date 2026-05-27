@@ -18,7 +18,7 @@ model = genai.GenerativeModel(model_name)
 def call_llm(messages: list) -> str:
 
     response = model.generate_content(
-        config={"temperature": 0.3, "top_p": 0.9, "max_output_tokens": 512},
+        generation_config={"temperature": 0.3, "top_p": 0.9, "max_output_tokens": 512},
         contents=messages
     )
 

@@ -36,7 +36,7 @@ export async function uploadText(text) {
   return parseResponse(response);
 }
 
-export async function askQuestion(documentId, question) {
+export async function askQuestion(documentId, question,history) {
   const response = await fetch(`${API_BASE_URL}/chat`, {
     method: "POST",
     headers: {
@@ -45,6 +45,7 @@ export async function askQuestion(documentId, question) {
     body: JSON.stringify({
       document_id: documentId,
       question,
+      history,
     }),
   });
 

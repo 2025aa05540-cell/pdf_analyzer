@@ -107,7 +107,12 @@ function App() {
     try {
       setIsAsking(true);
       setStatus("Finding an answer...");
-      const result = await askQuestion(documentId, userQuestion);
+      const historyContext = messages.slice(-5).map(msg => ({
+                                role: msg.role,
+                                text: msg.text
+                              })
+                            );
+      const result = await askQuestion(documentId, userQuestion,historyContext);
       const assistantMessage = {
         id: crypto.randomUUID(),
         role: "assistant",
